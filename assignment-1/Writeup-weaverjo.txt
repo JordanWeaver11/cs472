@@ -1,0 +1,38 @@
+ASSIGNMENT 1 ANSWERS
+Jordan Weaver
+ECE 472, Architecture
+1. Program completed.
+
+2. Question: Describe the difference between architecture and organization.
+
+Answer: As described in class, computer architecture is the set of assembly instructions that run on the CPU. Computer organization, on the other hand, refers to the design and interaction of hardware such as gates. Computer architecture allows computer programmers to interact with hardware without having to worry about hardware organization.
+
+3. Question: Describe the concept of endianness. What common platforms use what endianness?
+
+Answer: Endianness dictates the order of bytes in words stored in memory. If you were to look down at a piece of paper, Big Endian would place the most significant bytes on the left, and least significant on the right. This is how we traditionally read in America. However, little endian takes the opposite approach. It places the most significant information on the right, and least significant information on the left. In memory, big endian places the most significant byte in the smallest address, while little endian does the opposite [1].
+
+Volume 3A, Section 1.3.1. of the Intel Software Developer manual states that the x86 architecture uses little endian notation. As mentioned many times in class, the ARM architecture is Bi-endian. This means that the programmer can switch between little and big endian depending on their needs. Motorola processors, used in Mac’s, are big endian [2].
+
+4. Question: Give the IEEE 754 floating point format for both single and double precision. 
+Answer: x = (-1)^S x (1 + Fraction) x 2^(Exponent – Base). Both single and double precision use this format. Single precision allocates 1 bit for S (Sign), 8 bits for the Exponent, and 23 bits for the Fraction. Double precision allocates 1 bit for S (Sign), 11 bits for Exponent, and 52 bits for Fraction [3].
+
+5. Question: Describe the concept of the memory hierarchy. What levels of hierarchy are present on flip.engr.oregonstate.edu?
+Answer: As discussed in class, memory hierarchy provides multiple layers of memory and caching to improve memory access times. Faster memory costs more money to fabricate and to continuously power. This is why low-level memory, such as the L1 cache, is much smaller than the others. The memory hierarchy for modern CPUs goes from the L1 cache, up to the Ln cache (usually L3), to main memory (RAM), and finally to tertiary storage (hard drive).
+
+I ran my cupid code on flip.engr.oregonstate.edu and looked at the flags for TLB, cache, and memory hierarchy information. It has the following memory hierarchy:
+DTLB: 4k pages, fully associative, 32 entries
+Data TLB0: 2 MByte or 4 MByte pages, 4-way set associative, 32 entries
+Instruction TLB: 4KByte pages, 4-way set associative, 64 entries
+Instruction TLB: 4 KByte pages, 4-way set associative, 128 entries
+
+6. Question: What streaming SIMD instruction levels are present on flip.engr.oregonstate.edu?
+Answer: I looked at the flags in /proc/cpuinfo and found values in table 3-11 of the developer guide to answer this question. The following SIMD instruction levels are present:
+SSE extensions
+SSE2 extensions
+SSSE3 (Supplemental Streaming SIMD Extensions 3)
+SSE4.1
+SSE4.2
+[1] https://www.cs.umd.edu/class/sum2003/cmsc311/Notes/Data/endian.html
+[2] https://people.cs.umass.edu/~verts/cs32/endian.html
+[3] https://koclab.cs.ucsb.edu/teaching/cs192/hwpro/ieee754/Joshi.pdf
+
