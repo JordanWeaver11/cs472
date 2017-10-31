@@ -12,9 +12,15 @@
 #define MANT_LOW_MASK	0x00000000FFFFFFFF
 #define MANT_LOW_SHIFT	0
 #define MANT_HIGH_MASK	0x000FFFFF00000000
-#define MANT_HIGH_SHIFT	33
+#define MANT_HIGH_SHIFT	32
+#define MANT_SHIFT		52
 
 #define SET_EXP			0x3FE0000000000000
+
+union Data {
+	uint64_t i64;
+	double d;
+};
 
 double myfrexp(double x, int *exp) {
 	//fool compiler into thinking x is an int, to use bit operations
@@ -38,6 +44,85 @@ double myfrexp(double x, int *exp) {
 	return d;
 }
 
+/*
+double add(double x, double y) {
+	//y <= x
+	int xExp, yExp;
+	double xMantd = myfrexp(xMantd, &xExp);
+	double yMantd = myfrexp(yMantd, &yExp);
+	//get mantissa for x
+	uint64_t *xMantp = (uint64_t *) &xMantd;
+	uint64_t xMant = *xMantp;
+	xMant &= MANT_MASK;
+	//add 1 to the left of the radix
+	xMant |= 1 << MANT_SHIFT;
+	//get mantissa for y
+	uint64_t *yMantp = (uint64_t *) &yMantd;
+	uint64_t yMant = *yMantp;
+	yMant &= MANT_MASK;
+	//add 1 to the left of the radix
+	yMant |= 1 << MANT_SHIFT;
+	//set a common exponent
+	yExp +=  xExp - yExp;
+	//shift the y mantissa to match the exponent change
+	yMant <<= xExp - yExp;
+	
+	//add the mantissas
+	uint64_t xyMant = xMant + yMant;
+	uint64_t xyExp = yExp;
+	//shift
+	while((xyMant >> MANT_SHIFT) > 1) {
+		xyMant >>= 1;
+		xyExp += 1;
+	}
+	//delete the extra 1 to the left of the radix
+	xyMant &= ~(1<<MANT_SHIFT);
+	//set exp to account for bias
+	xyExp += 1022;
+	xyMant |= xyExp << EXP_SHIFT;
+	double result = 0;
+	memcpy(&result, &xyMant, sizeof(xyMant));
+	return result;
+}
+*/
+
+double add(double x, double y) {
+	//y <= x
+	int xExp, yExp;
+	union Data xMant;
+	union Data yMant;
+	xMant.d = myfrexp(x, &xExp);
+	yMant.d = myfrexp(y, &yExp);
+	//get mantissa for x
+	xMant.i64 &= MANT_MASK;
+	//add 1 to the left of the radix
+	xMant.i64 |= 1 << MANT_SHIFT;
+	//get mantissa for y
+	yMant.i64 &= MANT_MASK;
+	//add 1 to the left of the radix
+	yMant.i64 |= 1 << MANT_SHIFT;
+	//set a common exponent
+	yExp +=  xExp - yExp;
+	//shift the y mantissa to match the exponent change
+	yMant.i64 <<= xExp - yExp;
+	
+	//add the mantissas
+	union Data xyMant;
+	xyMant.i64 = xMant.i64 + yMant.i64;
+	uint64_t xyExp = yExp;
+	//shift
+	while((xyMant.i64 >> MANT_SHIFT) > 1) {
+		xyMant.i64 >>= 1;
+		xyExp += 1;
+	}
+	//delete the extra 1 to the left of the radix
+	xyMant.i64 &= ~(1<<MANT_SHIFT);
+	//set exp to account for bias
+	xyExp += 1022;
+	xyMant.i64 |= xyExp << EXP_SHIFT;
+	return xyMant.d;
+}
+
 int main(int argc, char* argv[]) {
 	/*
 	double x = -1000.56026423302164;
@@ -59,6 +144,9 @@ int main(int argc, char* argv[]) {
 	double x = argv[1];
 	*/
 	
+	double x = 10.551;
+	double y = 5.551;
+	printf("%f + %f = %f\n", x, y, add(x, y));
 	
 	return 0;
 }
