@@ -1,0 +1,132 @@
+Jordan Weaver
+ECE472
+Homework 2
+
+Floating Point Operations in Software
+
+PART 1: Implement Frexp Function
+I successfully implemented my own frexp function. The function acts almost identically to the provided function, and even returns the same values for special input values. However, I did not compare a few of the values correctly, and it skips a few of my “special case” if-statements. As a result passing +infinty, -infinity, or NAN did not work as expected. I compared the double values using a special compare function, but these cases slipped past it.
+
+testing: 100.100000
+frexp: fraction = 0.782031, exp = 7
+myfrexp: fraction = 0.782031, exp = 7
+testing: -100.100000
+frexp: fraction = -0.782031, exp = 7
+myfrexp: fraction = -0.782031, exp = 7
+testing: 0.000000
+frexp: fraction = 0.000000, exp = 0
+myfrexp: fraction = 0.000000, exp = 0
+testing: -0.000000
+frexp: fraction = 0.000000, exp = 0
+myfrexp: fraction = 0.000000, exp = 0
+testing: inf
+frexp: fraction = inf, exp = 0
+myfrexp: fraction = 0.500000, exp = 1025
+testing: -inf
+frexp: fraction = -inf, exp = 0
+myfrexp: fraction = -0.500000, exp = 1025
+testing: nan
+frexp: fraction = nan, exp = 0
+myfrexp: fraction = 0.750000, exp = 1025
+
+I used the following macros to define masks and shifting values in my frexp function.
+#define SIGN_MASK			0x8000000000000000
+#define SIGN_SHIFT			63
+#define EXP_MASK			0x7ff0000000000000
+#define EXP_SHIFT			52
+#define MANT_MASK			0x000FFFFFFFFFFFFF
+#define MANT_SHIFT			52
+#define MANT_LOW_MASK		0x00000000FFFFFFFF
+#define MANT_LOW_SHIFT		0
+#define MANT_HIGH_MASK		0x000FFFFF00000000
+#define MANT_HIGH_SHIFT		32
+#define SET_EXP				0x3FE0000000000000
+
+PART 2: Floating Point Operations
+I had an enormous amount of trouble getting the floating point operations to function correctly. For some reason I received an overflow warning when trying to shift past 32 bits when using the uint64_t data type. As a result, I was only able to complete each function in a non-working state. The correct concept is present, but the functionality is not complete.
+
+My addition, subtraction, and multiplication functions were very similar to each other. Here is the basic idea behind each of these algorithms:
+1.    Set Y’s exponent equal to X’s exponent.
+2.    Shift Y’s mantissa by the difference between X and Y’s exponent.
+3.    Perform the operation on the mantissas of the two numbers.
+4.    Shift the resulting mantissa and update the exponent for every shift until there is only a leading 1 to the left of the decimal point.
+5.    Convert the result back into double form.
+
+The division function was fundamentally different than the others. This algorithm was similar to the long-division algorithm that I learned as a kid. It worked by, first, performing integer division on the two mantissas. Then the result was stored, and divided again by the remainder. Each time, the new remainder was stored 1 bit to the right of the original result. I did not have time to work on this algorithm for long because I had so much trouble with the others. I did not have a chance to implement the square root function.
+
+I tested the completion time for my software floating-point operations using the method discussed in class. I used the clock() function to track the time required to complete 44 function calls. Then I repeated the timing using 22 function calls. I also wrapped these function calls inside of a large loop so that the clock() function would return a non-zero value. I calculated the final result using this equation:
+
+Execution_time = (time1 - time2) / 22
+
+The nice part about the timing method discussed above is that the looping time cancels out. I declared my loop counter as volatile so that my loops would not get optimized out of the code. I also compiled the program with the -O0 flag to disable gcc optimizations. See below for some sample output from my code.
+
+TESTING add function
+Software add function:
+    elapsed time: 856 clock ticks
+Hardware add function:
+    elapsed time: 235 clock ticks
+DONE testing add() function
+TESTING subtract() function
+Software subtract function:
+    elapsed time: 491 clock ticks
+Hardware subtract function:
+    elapsed time: 315 clock ticks
+DONE testing subract() function
+TESTING mul() function
+Software mul function:
+    elapsed time: 761 clock ticks
+Hardware mul function:
+    elapsed time: 164 clock ticks
+DONE testing mul() function
+TESTING div() function
+Software div function:
+    elapsed time: 2790 clock ticks
+Hardware div function:
+    elapsed time: 222 clock ticks
+DONE testing div() function
+
+I ran my code 3 times and took an average of each timing value to get a more accurate measurement. See below for the averaged results.
+
+Addition
+It took an average of 775 clock ticks for my software addition function to execute. It took an average of 163 clock ticks for the hardware addition function to execute. This means that the hardware version had a speedup of about 4.75x over the software version.
+
+Subtraction
+It took an average of 565 clock ticks for my software subtraction function to execute. It took an average of 88 clock ticks for the hardware addition function to execute. This means that the hardware version had a speedup of about 6.42x over the software version.
+
+Multiplication
+It took an average of 823 clock ticks for my software multiplication function to execute. It took an average of 187 clock ticks for the hardware multiplication function to execute. This means that the hardware version had a speedup of about 4.39x over the software version.
+
+Division
+It took an average of 565 clock ticks for my software division function to execute. It took an average of 88 clock ticks for the hardware division function to execute. This means that the hardware version had a speedup of about 37.45x over the software version.
+
+PART 3: Feature extraction
+I used my frexp function to extract some features for this part of the assignment, and I used bit manipulation for other parts. I found the union data structure to be helpful for this part as well as in creating the floating point operation functions. I stored the test value in the following union structure:
+
+union Data {
+    uint64_t i64;
+    int32_t i32;
+    double d;
+    char string[8];
+};
+
+The output of my code (below) best explains the results of my tests in this section of the assignment.
+
+TESTING feature extraction
+The value is: 2566.625100
+Treating the value as a DOUBLE:
+    sign: 0, mantissa: 0.626617, exp: 12
+Treating the value as a LONG:
+    value: 219902326, sign: 0
+Treating the value as CHARACTERS:
+character 0 is: v
+character 1 is: q
+character 2 is:
+character 3 is:
+character 4 is: @
+character 5 is:
+
+character 6 is: �
+character 7 is: @
+DONE testing feature extraction
+
+I chose a random value of 2566.625100 to test in part 3. Unfortunately, characters 2 and 3 could not be copied over to this report because they were very uncommon characters. Character 5 must be a newline character.
