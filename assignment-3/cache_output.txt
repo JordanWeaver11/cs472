@@ -1,0 +1,26 @@
+pi@raspberrypi:~/Documents/cs472 $ ./cacheSize
+working set 1KB access took 509 clock ticks
+working set 2KB access took 5 clock ticks
+working set 4KB access took 0 clock ticks
+working set 8KB access took 69630 clock ticks
+working set 16KB access took 17 clock ticks
+working set 32KB access took 30 clock ticks
+working set 64KB access took 68 clock ticks
+working set 128KB access took 127 clock ticks
+working set 256KB access took 251 clock ticks
+working set 1MB access took 10 clock ticks
+working set 2MB access took 10 clock ticks
+working set 4MB access took 10 clock ticks
+working set 8MB access took 2 clock ticks
+working set 16MB access took 19 clock ticks
+working set 32MB access took 51 clock ticks
+working set 64MB access took 69 clock ticks
+working set 128MB access took 93 clock ticks
+working set 256MB access took 340 clock ticks
+working set 512MB access took 340 clock ticks
+working set 900MB access took 329 clock ticks
+Your system has the following caches:
+l1 cache of size 4KB
+l2 cache of size 128KB
+l3 cache of size 128MB
+l4 cache of size 512MB

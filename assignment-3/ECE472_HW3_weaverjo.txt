@@ -1,0 +1,202 @@
+Jordan Weaver
+CS472
+11/19/2017
+                            HOMEWORK 3
+
+Type "make run" to run all of the code.
+
+PART1
+==============================
+Number of page table entries = (2^address_space) / page_size
+Size of page table = PTE's * number_of_bytes_per_PTE
+Memory required = Size of page table
+
+Kilobyte (KB) = 2^10 Bytes
+Megabyte (MB) = 2^20 Bytes
+Petabyte (PB) = 2^50 Bytes
+
+Question 1.
+------------------------------
+For a 4KB page, and a 32 bit address space, calculate the amount of memory needed to store a process's page tables. Assume each entry in the page table requires 10 bytes. Show all calculations.
+
+Memory required = [ (2^32) / (2^12) ] * 10 = (2^20) * 10 = 10MB
+
+Question 2.
+------------------------------
+For a 4KB page, and a 64 bit address space, calculate the amount of memory needed to store a process's page tables. Assume each entry in the page table requires 10 bytes. Show all calculations.
+
+Memory required = [ (2^64) / (2^12) ] * 10 = (2^52) * 10 = 4PB * 10 = 40PB
+
+Question 3.
+------------------------------
+For a 8KB page, and a 32 bit address space, calculate the amount of memory needed to store a process's page tables. Assume each entry in the page table requires 10 bytes. Show all calculations.
+
+Memory required = [ (2^32) / (2^13) ] * 10 = (2^19) * 10 = 9KB * 10 = 90KB
+
+Question 4.
+------------------------------
+For a 8KB page, and a 64 bit address space, calculate the amount of memory needed to store a process's page tables. Assume each entry in the page table requires 10 bytes. Show all calculations.
+
+Memory required = [ (2^64) / (2^13) ] * 10 = (2^51) * 10 = 2PB * 10 = 20PB
+
+Question 5.
+------------------------------
+Describe the concept of pipelining, and why it is useful.
+
+Pipelining is an approach that allows multiple instructions to be executed at the same time. It is often described in terms of washing laundry. A non-pipelined approach to washing laundry would be washing one load at a time. You place your first load in the washer, wait for them to wash, place them in the dryer, wait for them to dry, fold them, and then you finally start washing your second load of clothes. You never start washing the next load while your current load is being processed.
+
+Continuing with the laundry analogy, a pipelined approach would allow you to start washing your next load as soon as your current load is finished using the washer. This method allows you to work on multiple loads at the same time. One load of laundry could be washing, while another load is drying, while another load is being folded.
+
+In computer architecture the different stages could be expressed as fetching an instruction, reading data from memory, performing arithmetic in the ALU, and writing data to memory [1]. Pipelining is helpful because it increases the overall instruction throughput. However, it cannot increase the individual execution time of an instruction. Still, this limitation is negligible because programs normally contain an extremely large amount of instructions. The large number of instructions allows pipelining to increase throughput for almost any modern program.
+
+Question 6.
+------------------------------
+Describe the IA-32e paging structure, in detail.
+
+IA-32e paging is one of three different paging modes under the Intel 64 architecture. It supports 3 different page sizes: 4KB, 2MB, or 1GB. These differences in page size are determined by dividing the 48-bit virtual address into different chunks to increase/decrease the physical address width. The extreme virtualization of memory in the 4KB option can address 4096 terabytes of physical memory which should be more than adequate addressing for any modern computer [2].
+
+The 4KB page option divides bits 47:12 into four different 9-bit chunks: PML4 pointer, directory pointer, directory, and table [3]. The remaining bits 11:0 are left for paging offset to index into page entries which contain physical addresses. Next, the table portion simply points to a page table where the entries in the page table point to pages. The directory points to a directory pointer table. The directory pointer table can either point to a page table or to another page directory. Finally, the PML4 pointer points to a PML4 table where the entries in the table point to a page directory pointer. Basically, the structure goes from PML4 -> PML4_Table -> directory_pointer -> directory_pointer_table -> directory -> directory_table -> page_table -> page -> physical addresss. All of these divisions of bits produce a four-level page table hierarchy.
+
+The 2MB option divides bits 47:21 into three different 9-bit chunks. This option excludes the page table, so the directory entries just point directly to pages. The remaining bits 20:0 are left for indexing into the larger page size. This paging scheme creates a three-level page hierarchy.
+
+The 1GB option divides bits 47:30 into two different 9-bit chunks. With the much larger page sizes, only the PML4 pointer and directory pointer remain. The remaining bits 29:0 are left for indexing into the pages. This paging scheme creates a two-level hierarchy.
+
+
+PART2
+==============================
+
+Summary 1.
+------------------------------
+The PowerPoint presentation by Ericson gave a brief computer architecture overview,  provided a few methods for optimizing data access, and finished by highlighting the problem of aliasing [4]. The overall message was to help programmers understand how to write code to optimize data access and increase overall program performance. This is an important topic because CPU speeds have been increasing at a much faster rate than storage speeds over the last 20 years.
+
+Cycles increase with general values of the CPU at 1 cycle, L1 cache at 1-5 cycles, L2 cache at 5-20 cycles, and main memory at a whopping 40-100 cycles. The three R's of architecture are: Rearrange code to increase spacial locality, Reduce the number of cache lines read, and Reuse cache lines to increase temporal and spacial locality.
+
+You can optimize code cache through locality or size. Locality optimization can be performed by reordering functions or object files with the __attribute__ ((section("xxx"))) command in gcc. Size optimization can be performed by reducing large macros, avoiding loop splitting or loop fusion, and rewriting cache-heavy code in assembly.
+
+Data cache optimization can be a little more tricky. First, you can prefetch and preload data into the cache. Second, you can adjust the structure of your code by allocating similar data together or declaring variables in decreasing/ascending order. Third, tree data structures can have nodes rearranged or pointers eliminated. Breadth-first ordering of a tree structure is very cache heavy, while depth-first ordering only requires storage of existing nodes. Fourth, you can linearize your data. Linearized data is the "best possible spatial locality." Fifth, you can allocate memory from pools instead of the heap. This removes block overhead and keeps data together by preventing fragmentation. Finally, you can avoid aliasing (referencing the same storage location more than once). Global variables and pointers are the main causes of aliasing.
+
+Aliasing is a problem because it poisons the data cache. A pointer to your data might be in a completely separate part of memory than the data that it is pointing to. There are many ways to avoid aliasing or perform "anti-aliasing." One way for a programmer to prevent aliasing on matrix multiplication is through unrolling the matrix. Then the programmer needs to load each element before performing multiplication. However, this might result in some abstraction penalties where operations are hidden from the compiler.
+
+Another common way to perform anti-aliasing is through type-base alias analysis. This approach uses language types to "disambiguate memory references." It allows the programmer or compiler to assign temporary variables based on the type of the variable being referenced by a pointer.
+
+Another way to perform anti-aliasing through the "restrict" keyword. It assures the compiler that only one pointer will be used to access the target of the pointer. In C++ a programmer can use the restrict keyword in the same place that they would put "const" during variable creation. It is important to note that const does not specify the same restrictions as restrict so it will not perform the desired anti-aliasing.
+
+Summary 2.
+------------------------------
+The article by Drepper explains the basic behind cache access and management. Cache is important because CPUs are much faster than modern memory access. It is possible to build fast memory (SRAM) but it is far too expensive to be practical. Instead, computers have very small SRAM caches, slightly larger and slightly slower DRAM caches, and extremely slow main memory. The processors control which data gets put into which caches. This means that the data we need next will most likely be stored in the faster but small SRAM or DRAM cache.
+
+There are different layers of caches. Usually a system has L1i cache, L1d cache, L2 cache, and L3 cache. It is not very common for a system to have more than 3 levels of caching because the management cost starts to outweigh the benefit. Data is read into these caches in lines. When data is evicted from L1 cache it is usually left in L2 cache for a while. When data is evicted from L2 cache it is usually left in L3 cache for a while.
+
+Processors can be split into cores and cores into threads. Cores can run completely independently from each other while threads share processor resources.
+
+Fully associative caches would be great, but would result in an enormous amount of digital logic components. Direct-mapped caches, on the other hand, provide a reasonable sized implementation as are extremely fast. However, problems arise when some addresses point to larger parts of memory than others. Set-associative caches are a compromise between the two ideas. This type of cache allows a selection of values to be loaded for any given address.
+
+The author of the article then provides some measurements of cache effects using this struct as an example:
+    struct l {
+        struct l *n;
+        long int pad[NPAD];
+    };
+
+The performance measurements are in relation to working set sizes where the working set is the struct mentioned above. We can use the number of NPADS to determine the size of our struct and find the size of the cache in the following equation:
+    num_elements = (2^N) / sizeof(struct l)
+    --num_elements is the number of elements in the pad array.
+    --The working set has a size of 2^N bytes.
+
+PART3
+================================
+Implement some C code to calculate the cache sizes of any arbitrary processor. You will use the ideas presented in the above 2 papers. Run this code on flip, and determine the size and number of caches present.
+
+I implemented my code on a Raspberry Pi 3 Model B. My code used clock ticks instead of actual processor cycles, but it should be accurate enough for a rough comparison. I created an array struct with an array similar to the example in part 2 of this report. I used the C style clock() function to track the amount of time to traverse through every element of the array. Then I increased the size of the array to notice where jumps in timing occurred. A jump in timing indicates the current cache size has been exceeded and the next cache level was utilized.
+
+My code seemed pretty accurate when running on my raspberry pi. The only major problem was with the final cache output. For some reason my code does something wrong between the 900MB and 512MB working sets and says that my processor has an l4 cache.
+
+Sample output from my cacheSize.c program:
+pi@raspberrypi:~/Documents/cs472 $ ./cacheSize
+working set 1KB access took 509 clock ticks
+working set 2KB access took 5 clock ticks
+working set 4KB access took 0 clock ticks
+working set 8KB access took 69630 clock ticks
+working set 16KB access took 17 clock ticks
+working set 32KB access took 30 clock ticks
+working set 64KB access took 68 clock ticks
+working set 128KB access took 127 clock ticks
+working set 256KB access took 251 clock ticks
+working set 1MB access took 10 clock ticks
+working set 2MB access took 10 clock ticks
+working set 4MB access took 10 clock ticks
+working set 8MB access took 2 clock ticks
+working set 16MB access took 19 clock ticks
+working set 32MB access took 51 clock ticks
+working set 64MB access took 69 clock ticks
+working set 128MB access took 93 clock ticks
+working set 256MB access took 340 clock ticks
+working set 512MB access took 340 clock ticks
+working set 900MB access took 329 clock ticks
+Your system has the following caches:
+l1 cache of size 4KB
+l2 cache of size 128KB
+l3 cache of size 128MB //probably wrong because raspberry pi most likely doesn't have L3 cache
+l4 cache of size 512MB //Wrong!
+
+
+PART4
+================================
+I used the __BYTE_ORDER and __BIG_ENDIAN macros to determine the endianness at compile time. I noticed that the macro gave me the wrong value with no error when I did not include the endian.h header file. As shown below, I simply declared a variable depending on whether the byte order was big endian. Then I performed byte swapping using the global variable that I created in an "if" statement.
+
+Sample code from endian_p4.c:
+...
+#include <endian.h>
+...
+#if __BYTE_ORDER == __ORDER_BIG_ENDIAN
+int big_endian = 1;
+#else
+int big_endian = 0;
+#endif
+...
+if(big_endian) {
+	p_val[0] = 0x12;
+	p_val[1] = 0x34;
+}
+else {
+	p_val[0] = 0x34;
+	p_val[1] = 0x12;
+}
+...
+
+Sample output from endian_p4.c:
+jordan@jordan-VirtualBox:~/Documents/cs472/assignment-3$ ./endian_p4
+1234
+
+
+PART5
+================================
+I performed a swap test to complete this portion of the assignment [6]. I created an array of 2 characters: 0 and 1. Then I dereferenced the first value in my array into a "short" data type. In little endian this value would be 2 because it would be stored as 10 in binary. In big endian notation this value would be 1 because ti would be stored as 01 in binary.
+
+Sample code from endian_p5.c:
+...
+char swapTest[2] = {1, 0};
+
+if(*(short *) swapTest == 1) {
+	//little endian
+	p_val[0] = 0x34;
+	p_val[1] = 0x12;
+}
+else {
+	//big endian
+	p_val[0] = 0x12;
+	p_val[1] = 0x34;
+}
+...
+
+Sample output from endian_p5.c:
+jordan@jordan-VirtualBox:~/Documents/cs472/assignment-3$ ./endian_p5
+1234
+
+
+Sources:
+[1]D. Patterson, J. Hennessy and P. Alexander, Computer organization and design. Amsterdam: Morgan Kaufmann, 2013, pp. 272-277.
+[2]P. Krzyzanowski, "Paging Systems", PK.org, 2017. [Online]. Available: https://www.cs.rutgers.edu/~pxk/416/notes/10-paging.html.
+[3]"Intel 64 and IA-32 Architectures Software Developer's Manual", Intel, vol. 3, no. 235384, pp. 4.19-4.21, 2016.
+[4]C. Ericson, "Memory Optimization."
+[5]U. Drepper, What Every Programmer Should Know About Memory. Red Hat Inc., 2007, pp. 13-36.
+[6]https://www.gamedev.net/forums/topic/261458-endian-neutral-code/
